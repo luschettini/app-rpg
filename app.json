@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "app-teste",
-    "slug": "app-teste",
-    "version": "1.0.0",
+    "name": "RPG Characters Manager",
+    "slug": "app-rpg",
+    "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#6200ea"
     },
     "ios": {
       "supportsTablet": true
@@ -18,10 +18,10 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#6200ea"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.luschettini.appteste"
+      "package": "com.luschettini.apprpg"
     },
     "web": {
       "favicon": "./assets/favicon.png"

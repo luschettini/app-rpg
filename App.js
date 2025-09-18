@@ -1,223 +1,254 @@
-import React, { useState, useEffect } from "react";
-import {
-  SafeAreaView,
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  FlatList,
-  StyleSheet,
-  Alert,
-} from "react-native";
-import { StatusBar } from "expo-status-bar";
-import * as SQLite from "expo-sqlite";
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, Alert, LayoutAnimation, Platform, UIManager } from 'react-native';
+import { Provider as PaperProvider, Appbar, FAB, Portal, Modal, Text, Button } from 'react-native-paper';
+import Toast from 'react-native-toast-message';
+import Header from './components/Header';
+import CharacterCard from './components/CharacterCard';
+import AddCharacterForm from './components/AddCharacterForm';
+import { initializeDatabase, getCharacters, addCharacter, deleteCharacter, recruitCharacter } from './database';
+import { theme } from './utils/theme';
+
+// Habilitar animações no Android
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 export default function App() {
-  const [db, setDb] = useState(null);
-  const [characters, setCharacters] = useState([
-    { id: 1, name: "🧙‍♂️ Gandalf o Mago", recruited: 0 },
-    { id: 2, name: "⚔️ Aragorn o Guerreiro", recruited: 1 },
-    { id: 3, name: "🏹 Legolas o Arqueiro", recruited: 0 }
-  ]);
-  const [newCharacter, setNewCharacter] = useState("");
+  const [characters, setCharacters] = useState([]);
+  const [filter, setFilter] = useState('all'); // 'all', 'recruited', 'available'
+  const [modalVisible, setModalVisible] = useState(false);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [selectedCharacter, setSelectedCharacter] = useState(null);
 
   useEffect(() => {
-    async function openDatabase() {
-      try {
-        const database = await SQLite.openDatabaseAsync("party.db");
-        setDb(database);
-      } catch (error) {
-        console.error("Erro ao abrir banco de dados:", error);
-      }
-    }
-    
-    openDatabase();
+    setupDatabase();
   }, []);
 
-  function addCharacter() {
-    if (newCharacter === "") return;
-    
-    const newId = characters.length + 1; 
-    const newCharacterObj = {
-      id: newId,
-      name: newCharacter,
-      recruited: 0 
-    };
-    
-    const newList = [newCharacterObj]; 
-    const allCharacters = newList.concat(characters);
-    setCharacters(allCharacters); 
-    setNewCharacter(""); 
-  }
-
-  function toggleRecruit(character) {
-    const newCharacters = [];
-    for (let i = 0; i < characters.length; i++) {
-      const currentChar = characters[i];
-      if (currentChar.id === character.id) {
-
-        const newStatus = currentChar.recruited ? 0 : 1;
-        newCharacters.push({
-          id: currentChar.id,
-          name: currentChar.name,
-          recruited: newStatus
-        });
-      } else {
-  
-        newCharacters.push(currentChar);
-      }
+  const setupDatabase = async () => {
+    try {
+      await initializeDatabase();
+      loadCharacters();
+    } catch (error) {
+      console.error('Erro ao configurar banco:', error);
     }
-    setCharacters(newCharacters);
-  }
+  };
 
-  function removeCharacter(character) {
-    Alert.alert("Remover Personagem", `Remover "${character.name}" da party?`, [
-      { text: "Não" },
-      { 
-        text: "Sim", 
-        onPress: () => {
-          const newList = [];
-          for (let i = 0; i < characters.length; i++) {
-            if (characters[i].id !== character.id) {
-              newList.push(characters[i]);
-            }
-          }
-          setCharacters(newList);
-        }
-      }
-    ]);
-  }
+  const loadCharacters = async () => {
+    try {
+      const data = await getCharacters();
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      setCharacters(data);
+    } catch (error) {
+      console.error('Erro ao carregar personagens:', error);
+    }
+  };
 
-  function renderCharacter({ item }) {
-    return (
-      <TouchableOpacity
-        style={[styles.character, item.recruited && styles.characterRecruited]}
-        onPress={() => toggleRecruit(item)}
-        onLongPress={() => removeCharacter(item)}
-      >
-        <Text style={[styles.characterText, item.recruited && styles.characterRecruitedText]}>
-          {item.name}
-        </Text>
-        <Text style={styles.status}>
-          {item.recruited ? "⭐" : "💤"}
-        </Text>
-      </TouchableOpacity>
-    );
-  }
+  const handleAddCharacter = async (name, characterClass) => {
+    try {
+      await addCharacter(name, characterClass);
+      await loadCharacters();
+      setModalVisible(false);
+      Toast.show({
+        type: 'success',
+        text1: 'Sucesso!',
+        text2: `Personagem ${name} adicionado com sucesso!`
+      });
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Erro!',
+        text2: 'Não foi possível adicionar o personagem'
+      });
+    }
+  };
+
+  const handleDeleteCharacter = async () => {
+    if (!selectedCharacter) return;
+    
+    try {
+      await deleteCharacter(selectedCharacter.id);
+      await loadCharacters();
+      setDeleteModalVisible(false);
+      setSelectedCharacter(null);
+      Toast.show({
+        type: 'success',
+        text1: 'Removido!',
+        text2: `Personagem removido com sucesso!`
+      });
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Erro!',
+        text2: 'Não foi possível remover o personagem'
+      });
+    }
+  };
+
+  const handleRecruitCharacter = async (id, currentStatus) => {
+    try {
+      await recruitCharacter(id, !currentStatus);
+      await loadCharacters();
+      Toast.show({
+        type: 'success',
+        text1: currentStatus ? 'Dispensado!' : 'Recrutado!',
+        text2: currentStatus ? 'Personagem dispensado' : 'Personagem recrutado para sua equipe!'
+      });
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Erro!',
+        text2: 'Não foi possível alterar status do personagem'
+      });
+    }
+  };
+
+  const confirmDelete = (character) => {
+    setSelectedCharacter(character);
+    setDeleteModalVisible(true);
+  };
+
+  const getFilteredCharacters = () => {
+    switch (filter) {
+      case 'recruited':
+        return characters.filter(char => char.recruited);
+      case 'available':
+        return characters.filter(char => !char.recruited);
+      default:
+        return characters;
+    }
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="dark" />
-      
-      <Text style={styles.title}>🏰 Minha Party RPG</Text>
-      <Text style={styles.subtitle}>⭐ Recrutado • 💤 Disponível • Segure para remover</Text>
+    <PaperProvider theme={theme}>
+      <View style={styles.container}>
+        <Appbar.Header>
+          <Appbar.Content title="RPG Characters" />
+          <Appbar.Action 
+            icon={filter === 'all' ? 'account-group' : filter === 'recruited' ? 'account-check' : 'account-plus'} 
+            onPress={() => {
+              const filters = ['all', 'recruited', 'available'];
+              const currentIndex = filters.indexOf(filter);
+              const nextFilter = filters[(currentIndex + 1) % filters.length];
+              setFilter(nextFilter);
+            }} 
+          />
+        </Appbar.Header>
 
-      <View style={styles.inputRow}>
-        <TextInput
-          style={styles.input}
-          placeholder="🎭 Nome do novo personagem..."
-          value={newCharacter}
-          onChangeText={setNewCharacter}
-          onSubmitEditing={addCharacter}
+        <Header 
+          characters={characters}
+          filter={filter}
+          onFilterChange={setFilter}
         />
-        <TouchableOpacity style={styles.button} onPress={addCharacter}>
-          <Text style={styles.buttonText}>⚔️</Text>
-        </TouchableOpacity>
-      </View>
 
-      <FlatList
-        data={characters}
-        keyExtractor={(item) => String(item.id)}
-        renderItem={renderCharacter}
-        style={styles.list}
-      />
-    </SafeAreaView>
+        <View style={styles.content}>
+          {getFilteredCharacters().map((character) => (
+            <CharacterCard
+              key={character.id}
+              character={character}
+              onRecruit={() => handleRecruitCharacter(character.id, character.recruited)}
+              onDelete={() => confirmDelete(character)}
+            />
+          ))}
+        </View>
+
+        <FAB
+          style={styles.fab}
+          icon="plus"
+          onPress={() => setModalVisible(true)}
+        />
+
+        {/* Modal para adicionar personagem */}
+        <Portal>
+          <Modal
+            visible={modalVisible}
+            onDismiss={() => setModalVisible(false)}
+            contentContainerStyle={styles.modalContainer}
+          >
+            <AddCharacterForm
+              onSubmit={handleAddCharacter}
+              onCancel={() => setModalVisible(false)}
+            />
+          </Modal>
+        </Portal>
+
+        {/* Modal de confirmação para deletar */}
+        <Portal>
+          <Modal
+            visible={deleteModalVisible}
+            onDismiss={() => setDeleteModalVisible(false)}
+            contentContainerStyle={styles.modalContainer}
+          >
+            <View style={styles.deleteModal}>
+              <Text style={styles.deleteTitle}>Confirmar Exclusão</Text>
+              <Text style={styles.deleteText}>
+                Tem certeza que deseja remover {selectedCharacter?.name}?
+              </Text>
+              <View style={styles.deleteButtons}>
+                <Button
+                  mode="outlined"
+                  onPress={() => setDeleteModalVisible(false)}
+                  style={styles.cancelButton}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  mode="contained"
+                  onPress={handleDeleteCharacter}
+                  buttonColor="#f44336"
+                >
+                  Remover
+                </Button>
+              </View>
+            </View>
+          </Modal>
+        </Portal>
+
+        <Toast />
+      </View>
+    </PaperProvider>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#1A0E0A", 
-    paddingTop: 50, 
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+    backgroundColor: '#f5f5f5',
   },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 8,
-    color: "#E69A28", 
-  },
-  subtitle: {
-    fontSize: 12,
-    textAlign: "center",
-    marginBottom: 20,
-    color: "#C5282F", 
-  },
-  inputRow: {
-    flexDirection: "row",
-    marginBottom: 20,
-  },
-  input: {
+  content: {
     flex: 1,
-    borderWidth: 2,
-    borderColor: "#E69A28", 
-    borderRadius: 8,
-    padding: 12,
-    backgroundColor: "#F4E4BC", 
-    color: "#1A0E0A",
-    fontSize: 16,
+    padding: 16,
   },
-  button: {
-    backgroundColor: "#C5282F", 
-    padding: 12,
-    borderRadius: 8,
-    marginLeft: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    width: 50,
-    borderWidth: 2,
-    borderColor: "#E69A28", 
+  fab: {
+    position: 'absolute',
+    margin: 16,
+    right: 0,
+    bottom: 0,
   },
-  buttonText: {
-    color: "#E69A28", 
+  modalContainer: {
+    backgroundColor: 'white',
+    padding: 20,
+    margin: 20,
+    borderRadius: 10,
+  },
+  deleteModal: {
+    alignItems: 'center',
+  },
+  deleteTitle: {
     fontSize: 18,
-    fontWeight: "bold",
-  },
-  list: {
-    flex: 1,
-  },
-  character: {
-    backgroundColor: "#2C1810", 
-    padding: 15,
-    borderRadius: 8,
+    fontWeight: 'bold',
     marginBottom: 10,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#58180D", 
   },
-  characterRecruited: {
-    backgroundColor: "#58180D", 
-    borderColor: "#E69A28", 
-    borderWidth: 2,
-  },
-  characterText: {
-    flex: 1,
+  deleteText: {
     fontSize: 16,
-    color: "#F4E4BC", 
-    fontWeight: "500",
+    textAlign: 'center',
+    marginBottom: 20,
   },
-  characterRecruitedText: {
-    color: "#E69A28", 
-    fontWeight: "bold",
+  deleteButtons: {
+    flexDirection: 'row',
+    gap: 10,
   },
-  status: {
-    fontSize: 20,
-    marginLeft: 10,
+  cancelButton: {
+    marginRight: 10,
   },
 });
 
