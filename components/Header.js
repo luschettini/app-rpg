@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Title, Subtitle, Chip } from 'react-native-paper';
+import { Text, Chip } from 'react-native-paper';
 
 const Header = ({ characters, filter, onFilterChange }) => {
   const totalCharacters = characters.length;
@@ -20,8 +20,8 @@ const Header = ({ characters, filter, onFilterChange }) => {
 
   return (
     <View style={styles.container}>
-      <Title style={styles.title}>Gerenciador de Personagens RPG</Title>
-      <Subtitle style={styles.subtitle}>{getFilterText()}</Subtitle>
+      <Text style={styles.title}>Gerenciador de Personagens RPG</Text>
+      <Text style={styles.subtitle}>{getFilterText()}</Text>
       
       <View style={styles.chipsContainer}>
         <Chip 
@@ -52,30 +52,43 @@ const Header = ({ characters, filter, onFilterChange }) => {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
+    padding: 24,
+    paddingVertical: 20,
     backgroundColor: 'white',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    elevation: 4,
+    shadowColor: '#e91e63',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    marginBottom: 16,
   },
   title: {
     textAlign: 'center',
-    color: '#6200ea',
+    color: '#e91e63',
+    fontSize: 26,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    letterSpacing: 0.8,
   },
   subtitle: {
     textAlign: 'center',
-    marginBottom: 12,
-    color: '#666',
+    marginBottom: 20,
+    color: '#ad1457',
+    fontSize: 16,
+    fontWeight: '500',
   },
   chipsContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 8,
+    flexWrap: 'wrap',
+    gap: 10,
+    paddingHorizontal: 8,
   },
   chip: {
-    marginHorizontal: 4,
+    marginHorizontal: 3,
+    marginVertical: 3,
+    minHeight: 40,
+    backgroundColor: '#f8bbd9',
   },
 });
 

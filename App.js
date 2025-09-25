@@ -8,14 +8,13 @@ import AddCharacterForm from './components/AddCharacterForm';
 import { initializeDatabase, getCharacters, addCharacter, deleteCharacter, recruitCharacter } from './database';
 import { theme } from './utils/theme';
 
-// Habilitar animações no Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
 export default function App() {
   const [characters, setCharacters] = useState([]);
-  const [filter, setFilter] = useState('all'); // 'all', 'recruited', 'available'
+  const [filter, setFilter] = useState('all');
   const [modalVisible, setModalVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [selectedCharacter, setSelectedCharacter] = useState(null);
@@ -195,6 +194,7 @@ export default function App() {
                   mode="contained"
                   onPress={handleDeleteCharacter}
                   buttonColor="#f44336"
+                  style={styles.deleteButton}
                 >
                   Remover
                 </Button>
@@ -203,7 +203,44 @@ export default function App() {
           </Modal>
         </Portal>
 
-        <Toast />
+        <Toast 
+          config={{
+            success: (props) => (
+              <View style={{
+                backgroundColor: '#e91e63',
+                padding: 16,
+                borderRadius: 12,
+                margin: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}>
+                <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>
+                  ✓ {props.text1}
+                </Text>
+                <Text style={{ color: '#fce4ec', marginLeft: 8 }}>
+                  {props.text2}
+                </Text>
+              </View>
+            ),
+            error: (props) => (
+              <View style={{
+                backgroundColor: '#d32f2f',
+                padding: 16,
+                borderRadius: 12,
+                margin: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}>
+                <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>
+                  ✗ {props.text1}
+                </Text>
+                <Text style={{ color: '#ffcdd2', marginLeft: 8 }}>
+                  {props.text2}
+                </Text>
+              </View>
+            ),
+          }}
+        />
       </View>
     </PaperProvider>
   );
@@ -212,43 +249,60 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#fce4ec',
   },
   content: {
     flex: 1,
-    padding: 16,
+    paddingBottom: 90,
   },
   fab: {
     position: 'absolute',
-    margin: 16,
+    margin: 24,
     right: 0,
     bottom: 0,
+    elevation: 12,
+    backgroundColor: '#e91e63',
   },
   modalContainer: {
     backgroundColor: 'white',
-    padding: 20,
+    padding: 28,
     margin: 20,
-    borderRadius: 10,
+    borderRadius: 20,
+    maxHeight: '90%',
+    elevation: 8,
   },
   deleteModal: {
     alignItems: 'center',
+    padding: 12,
   },
   deleteTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 16,
+    color: '#880e4f',
+    textAlign: 'center',
   },
   deleteText: {
-    fontSize: 16,
+    fontSize: 17,
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 28,
+    color: '#ad1457',
+    lineHeight: 24,
   },
   deleteButtons: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 20,
+    minWidth: '100%',
   },
   cancelButton: {
-    marginRight: 10,
+    flex: 1,
+    minHeight: 52,
+    borderColor: '#f06292',
+  },
+  deleteButton: {
+    flex: 1,
+    minHeight: 52,
+    backgroundColor: '#e91e63',
   },
 });
 

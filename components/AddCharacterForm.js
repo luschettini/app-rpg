@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { TextInput, Button, Title, HelperText, Menu, Divider } from 'react-native-paper';
+import { TextInput, Button, Text, HelperText, Menu, Divider } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 
 const AddCharacterForm = ({ onSubmit, onCancel }) => {
@@ -51,7 +51,7 @@ const AddCharacterForm = ({ onSubmit, onCancel }) => {
 
   return (
     <View style={styles.container}>
-      <Title style={styles.title}>Adicionar Novo Personagem</Title>
+      <Text style={styles.title}>Adicionar Novo Personagem</Text>
       
       <TextInput
         label="Nome do Personagem"
@@ -94,7 +94,7 @@ const AddCharacterForm = ({ onSubmit, onCancel }) => {
             }}
             title={cls.name}
             leadingIcon={() => (
-              <MaterialIcons name={cls.icon} size={20} color="#6200ea" />
+              <MaterialIcons name={cls.icon} size={20} color="#e91e63" />
             )}
           />
         ))}
@@ -124,33 +124,47 @@ const AddCharacterForm = ({ onSubmit, onCancel }) => {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 8,
+    padding: 24,
+    paddingVertical: 20,
   },
   title: {
     textAlign: 'center',
-    marginBottom: 20,
-    color: '#6200ea',
+    marginBottom: 28,
+    color: '#e91e63',
+    fontSize: 24,
+    fontWeight: 'bold',
+    letterSpacing: 0.6,
   },
   input: {
-    marginBottom: 4,
+    marginBottom: 10,
+    backgroundColor: 'transparent',
   },
   classButton: {
-    marginTop: 8,
-    marginBottom: 20,
+    marginTop: 16,
+    marginBottom: 28,
+    minHeight: 52,
+    justifyContent: 'center',
+    borderColor: '#e91e63',
   },
   classButtonContent: {
     flexDirection: 'row-reverse',
+    paddingVertical: 6,
   },
   buttons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 12,
+    marginTop: 20,
+    gap: 18,
   },
   cancelButton: {
     flex: 1,
+    minHeight: 52,
+    borderColor: '#f06292',
   },
   submitButton: {
     flex: 1,
+    minHeight: 52,
+    backgroundColor: '#e91e63',
   },
 });
 

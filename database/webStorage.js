@@ -1,12 +1,9 @@
-// Versão web usando localStorage
 const STORAGE_KEY = 'rpg_characters';
 
-// Simular delay para manter consistência com SQLite
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const initializeDatabase = async () => {
   try {
-    // Verificar se já existe dados no localStorage
     const existing = localStorage.getItem(STORAGE_KEY);
     if (!existing) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
@@ -21,7 +18,7 @@ export const initializeDatabase = async () => {
 
 export const getCharacters = async () => {
   try {
-    await delay(100); // Simular delay do banco
+    await delay(100);
     const data = localStorage.getItem(STORAGE_KEY);
     const characters = data ? JSON.parse(data) : [];
     return characters.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -36,7 +33,7 @@ export const addCharacter = async (name, characterClass) => {
     await delay(100);
     const characters = await getCharacters();
     const newCharacter = {
-      id: Date.now(), // Usar timestamp como ID único
+      id: Date.now(),
       name,
       class: characterClass,
       recruited: false,
